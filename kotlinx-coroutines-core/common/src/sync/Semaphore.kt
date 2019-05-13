@@ -146,7 +146,7 @@ private class SemaphoreImpl(private val permits: Int, acquiredPermits: Int)
     private fun resumeNextFromQueue() {
         val first = this.head
         val deqIdx = deqIdx.getAndIncrement()
-        val segment = getSegmentAndMoveFirst(first, deqIdx / SEGMENT_SIZE) ?: return
+        val segment = getSegmentAndMoveHead(first, deqIdx / SEGMENT_SIZE) ?: return
         val i = (deqIdx % SEGMENT_SIZE).toInt()
         val cont = segment.getAndUpdate(i) {
             // Cancelled continuation invokes `release`

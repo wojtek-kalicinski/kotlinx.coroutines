@@ -42,7 +42,7 @@ internal abstract class SegmentQueue<S: Segment<S>>(createFirstSegmentLazily: Bo
     /**
      * Finds a segment with the specified [id] following by next references from the
      * [startFrom] segment. The typical use-case is reading [tail] or [head], doing some
-     * synchronization, and invoking [getSegment] or [getSegmentAndMoveFirst] correspondingly
+     * synchronization, and invoking [getSegment] or [getSegmentAndMoveHead] correspondingly
      * to find the required segment.
      */
     protected fun getSegment(startFrom: S?, id: Long): S? {
@@ -57,7 +57,6 @@ internal abstract class SegmentQueue<S: Segment<S>>(createFirstSegmentLazily: Bo
                 startFrom = head!!
             }
         }
-        if (startFrom.id > id) return null
         // Go through `next` references and add new segments if needed,
         // similarly to the `push` in the Michael-Scott queue algorithm.
         // The only difference is that `CAS failure` means that the
@@ -88,7 +87,7 @@ internal abstract class SegmentQueue<S: Segment<S>>(createFirstSegmentLazily: Bo
     /**
      * Invokes [getSegment] and replaces [head] with the result if its [id] is greater.
      */
-    protected fun getSegmentAndMoveFirst(startFrom: S?, id: Long): S? {
+    protected fun getSegmentAndMoveHead(startFrom: S?, id: Long): S? {
         if (startFrom !== null && startFrom.id == id) return startFrom
         val s = getSegment(startFrom, id) ?: return null
         moveHeadForward(s)
