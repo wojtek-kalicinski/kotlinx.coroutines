@@ -23,11 +23,11 @@ open class SemaphoreBenchmark {
     @Param("0", "1000")
     private var _2_coroutines: Int = 0
 
-    @Param("1", "2", "4", "8", "32", "128", "100000")
+    @Param("1", "2", "4", "8", "32", "64", "100000")
     private var _3_maxPermits: Int = 0
 
-    @Param("1", "2", "4") // local machine
-//    @Param("1", "2", "4", "8", "16", "32", "64", "128", "144") // dasquad
+//    @Param("1", "2", "4") // local machine
+    @Param("1", "2", "4", "8", "16", "32", "64", "128", "144") // dasquad
 //    @Param("1", "2", "4", "8", "16", "32", "64", "96") // Google Cloud
     private var _4_parallelism: Int = 0
 

@@ -35,7 +35,7 @@ internal class SegmentBasedQueue<T>(createFirstSegmentLazily: Boolean) : Segment
             if (this.deqIdx.value >= this.enqIdx.value) return null
             var firstSegment = this.head
             val deqIdx = this.deqIdx.getAndIncrement()
-            firstSegment = getSegmentAndMoveFirst(firstSegment, deqIdx) ?: continue
+            firstSegment = getSegmentAndMoveHead(firstSegment, deqIdx) ?: continue
             var el = firstSegment.element.value
             if (el === null) {
                 if (firstSegment.element.compareAndSet(null, BROKEN)) continue

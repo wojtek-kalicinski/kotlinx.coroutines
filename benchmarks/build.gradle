@@ -18,7 +18,7 @@ jmh {
     duplicateClassesStrategy DuplicatesStrategy.INCLUDE
     failOnError = true
     resultFormat = 'CSV'
-//    include = ['.*ChannelProducerConsumer.*']
+    include = ['.*Semaphore.*']
 }
 
 jmhJar {
