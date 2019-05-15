@@ -24,8 +24,28 @@ open class SemaphoreOnThreadsBenchmark {
     private var _2_parallelism: Int = 0
 
     @Benchmark
-    fun javaSemaphore() {
-        val s = java.util.concurrent.Semaphore(_1_maxPermits)
+    fun javaSemaphoreFair() {
+        val s = java.util.concurrent.Semaphore(_1_maxPermits, true)
+        val t = _2_parallelism
+        val p = Phaser(t)
+        val n = BATCH_SIZE / t
+        repeat(t) {
+            thread {
+                repeat(n) {
+                    s.acquire()
+                    doWork(WORK_INSIDE)
+                    s.release()
+                    doWork(WORK_OUTSIDE)
+                }
+                p.arrive()
+            }
+        }
+        p.awaitAdvance(0)
+    }
+
+    @Benchmark
+    fun javaSemaphoreUnfair() {
+        val s = java.util.concurrent.Semaphore(_1_maxPermits, false)
         val t = _2_parallelism
         val p = Phaser(t)
         val n = BATCH_SIZE / t
