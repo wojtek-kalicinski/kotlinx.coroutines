@@ -2,6 +2,7 @@ package benchmarks
 
 import kotlinx.coroutines.FastSemaphore
 import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.infra.Blackhole
 import java.util.concurrent.Phaser
 import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.TimeUnit
@@ -87,13 +88,14 @@ open class SemaphoreOnThreadsBenchmark {
 
 private fun doWork(work: Int) {
     // We use geometric distribution here
-    val p = 1.0 / work
-    val r = ThreadLocalRandom.current()
-    while (true) {
-        if (r.nextDouble() < p) break
-    }
+    Blackhole.consumeCPU(work.toLong())
+//    val p = 1.0 / work
+//    val r = ThreadLocalRandom.current()
+//    while (true) {
+//        if (r.nextDouble() < p) break
+//    }
 }
 
 private const val WORK_INSIDE = 80
 private const val WORK_OUTSIDE = 40
-private const val BATCH_SIZE = 1000000
+private const val BATCH_SIZE = 100000
