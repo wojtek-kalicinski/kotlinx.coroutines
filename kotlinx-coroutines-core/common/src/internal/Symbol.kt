@@ -4,6 +4,9 @@
 
 package kotlinx.coroutines.internal
 
+import kotlinx.coroutines.flow.internal.*
+import kotlinx.coroutines.flow.internal.NullSurrogate
+
 /**
  * A symbol class that is used to define unique constants that are self-explanatory in debugger.
  *
@@ -11,4 +14,7 @@ package kotlinx.coroutines.internal
  */
 internal class Symbol(val symbol: String) {
     override fun toString(): String = symbol
+
+    @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+    inline fun <T> unbox(value: Any?): T = if (value === this) null as T else value as T
 }

@@ -4,11 +4,11 @@
 
 package kotlinx.coroutines.flow.internal
 
+import kotlinx.coroutines.internal.*
 import kotlin.jvm.*
 
-internal object NullSurrogate {
-
-    @JvmStatic
-    @Suppress("UNCHECKED_CAST")
-    internal fun <T> unbox(value: Any?): T = if (value === NullSurrogate) null as T else value as T
-}
+// Note: it is conceptually the same as AbstractChannel.NULL_VALUE
+// todo: consolidate, move this constant to "common" kotlinx.coroutines.internal, rename consistently with other symbols
+@JvmField
+@SharedImmutable
+internal val NullSurrogate = Symbol("NullSurrogate")
