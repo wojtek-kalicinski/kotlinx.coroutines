@@ -44,22 +44,20 @@ public fun <T, R> Flow<T>.flatMapConcat(transform: suspend (value: T) -> Flow<R>
 public fun <T, R> Flow<T>.flatMapMerge(concurrency: Int = 16, bufferSize: Int = 16, transform: suspend (value: T) -> Flow<R>): Flow<R> {
     require(bufferSize >= 0) { "Expected non-negative buffer size, but had $bufferSize" }
     require(concurrency >= 0) { "Expected non-negative concurrency level, but had $concurrency" }
-    return flow {
-        coroutineScope {
-            val semaphore = Channel<Unit>(concurrency)
-            val flatMap = SerializingFlatMapCollector(this@flow, bufferSize)
-            collect { outerValue ->
-                // TODO real semaphore (#94)
-                semaphore.send(Unit) // Acquire concurrency permit
-                val inner = transform(outerValue)
-                launch {
-                    try {
-                        inner.collect { value ->
-                            flatMap.emit(value)
-                        }
-                    } finally {
-                        semaphore.receive() // Release concurrency permit
+    return scopedFlow {
+        val semaphore = Channel<Unit>(concurrency)
+        val flatMap = SerializingFlatMapCollector(this@scopedFlow, bufferSize)
+        collect { outerValue ->
+            // TODO real semaphore (#94)
+            semaphore.send(Unit) // Acquire concurrency permit
+            val inner = transform(outerValue)
+            launch {
+                try {
+                    inner.collect { value ->
+                        flatMap.emit(value)
                     }
+                } finally {
+                    semaphore.receive() // Release concurrency permit
                 }
             }
         }
@@ -110,17 +108,16 @@ public fun <T> Flow<Flow<T>>.flattenMerge(concurrency: Int = 16, bufferSize: Int
  * produces `aa bb b_last`
  */
 @FlowPreview
-public fun <T, R> Flow<T>.switchMap(transform: suspend (value: T) -> Flow<R>): Flow<R> = flow {
-    coroutineScope {
-        var previousFlow: Job? = null
-        collect { value ->
-            // Linearize calls to emit as alternative to the channel. Bonus points for never-overlapping channels.
-            previousFlow?.cancelAndJoin()
-            // Undispatched to have better user experience in case of synchronous flows
-            previousFlow = launch(start = CoroutineStart.UNDISPATCHED) {
-                transform(value).collect { innerValue ->
-                    emit(innerValue)
-                }
+public fun <T, R> Flow<T>.switchMap(transform: suspend (value: T) -> Flow<R>): Flow<R> = scopedFlow {
+    var previousFlow: Job? = null
+    collect { value ->
+        // Linearize calls to emit as alternative to the channel. Bonus points for never-overlapping channels.
+        previousFlow?.cancel(ChildCancelledException())
+        previousFlow?.join()
+        // Undispatched to have better user experience in case of synchronous flows
+        previousFlow = launch(start = CoroutineStart.UNDISPATCHED) {
+            transform(value).collect { innerValue ->
+                emit(innerValue)
             }
         }
     }
