@@ -24,11 +24,7 @@ import kotlinx.coroutines.flow.unsafeFlow as flow
  */
 @FlowPreview
 public fun <T, R> Flow<T>.flatMapConcat(transform: suspend (value: T) -> Flow<R>): Flow<R> = flow {
-    collect { value ->
-        transform(value).collect { innerValue ->
-            emit(innerValue)
-        }
-    }
+    collect { value -> emitAll(transform(value)) }
 }
 
 /**
@@ -72,11 +68,7 @@ public fun <T, R> Flow<T>.flatMapMerge(concurrency: Int = 16, bufferSize: Int = 
  */
 @FlowPreview
 public fun <T> Flow<Flow<T>>.flattenConcat(): Flow<T> = flow {
-    collect { value ->
-        value.collect { innerValue ->
-            emit(innerValue)
-        }
-    }
+    collect { value -> emitAll(value) }
 }
 
 /**
@@ -118,9 +110,7 @@ public fun <T, R> Flow<T>.switchMap(transform: suspend (value: T) -> Flow<R>): F
             previousFlow?.cancelAndJoin()
             // Undispatched to have better user experience in case of synchronous flows
             previousFlow = launch(start = CoroutineStart.UNDISPATCHED) {
-                transform(value).collect { innerValue ->
-                    emit(innerValue)
-                }
+                emitAll(transform(value))
             }
         }
     }
